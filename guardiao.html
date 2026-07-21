@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viajante X — Guardião do Nó</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main class="guardiao">
+  <header class="guardiao-header">
+    <div class="guardiao-avatar" aria-hidden="true">🌙</div>
+    <div>
+      <h1>Guardião do Nó</h1>
+      <p class="guardiao-sub">à beira d'água, sempre</p>
+    </div>
+  </header>
+
+  <div class="guardiao-chat" id="guardiao-chat"></div>
+
+  <form class="guardiao-form" id="form-guardiao">
+    <button class="btn-mic" id="btn-mic" type="button" aria-label="Falar por áudio">🎙️</button>
+    <input type="text" id="input-guardiao" placeholder="Escreva sua resposta..." autocomplete="off">
+    <button class="btn-enviar" type="submit" aria-label="Enviar">➤</button>
+  </form>
+
+  <a href="portais.html" class="guardiao-seguir">seguir viagem →</a>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

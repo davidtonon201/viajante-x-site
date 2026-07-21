@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viajante X — Iniciar Jornada</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<main class="onboard">
+  <h1>Quem é você nessa jornada?</h1>
+  <p>O Oráculo lembra de você desde a primeira conversa. Diga como quer ser chamado.</p>
+
+  <form class="onboard-form" id="form-viajante">
+    <input type="text" name="nome" placeholder="Seu nome de viajante" required>
+    <button class="btn-continuar" type="submit" id="btn-continuar-onboard">Continuar</button>
+  </form>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  background: #000;
+  overflow-x: hidden;
+}
+
+.hero {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+.hero-frame {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+}
+
+.hero-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Botões invisíveis, posicionados em cima da própria arte da imagem.
+   As porcentagens são relativas ao tamanho da imagem (não da tela),
+   então ficam alinhadas em qualquer tamanho de aparelho. */
+.hit {
+  position: absolute;
+  display: block;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(212, 175, 55, 0.15);
+}
+
+.hit:focus-visible {
+  outline: 2px solid rgba(212, 175, 55, 0.8);
+  outline-offset: 2px;
+}
+
+.hit-jornada {
+  left: 26%;
+  width: 47%;
+  top: 72%;
+  height: 14.5%;
+}
+
+.hit-tab {
+  /* posição/tamanho definidos inline no HTML para cada um dos 4 itens */
+}
+
+/* Tela de Onboarding — simples, mesmo clima visual da tela inicial */
+.onboard {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: #f2e9d8;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(80, 50, 110, 0.3), transparent 55%),
+    radial-gradient(ellipse at 70% 80%, rgba(30, 60, 110, 0.25), transparent 55%),
+    #000;
+}
+
+.onboard h1 {
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
+  letter-spacing: 0.05em;
+  color: #f6e7b0;
+}
+
+.onboard p {
+  color: #cbb98a;
+  max-width: 320px;
+  line-height: 1.5;
+}
+
+.onboard input,
+.onboard select {
+  width: 100%;
+  max-width: 320px;
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f2e9d8;
+}
+
+.onboard input::placeholder {
+  color: #8a8270;
+}
+
+.onboard-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  align-items: center;
+}
+
+/* Tela de Portais */
+.portais {
+  min-height: 100dvh;
+  padding: 2.5rem 1.25rem 6.5rem;
+  color: #f2e9d8;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(ellipse at 30% 10%, rgba(80, 50, 110, 0.3), transparent 55%),
+    #000;
+}
+
+.portais h1 {
+  text-align: center;
+  font-size: clamp(1.4rem, 5vw, 1.9rem);
+  color: #f6e7b0;
+  letter-spacing: 0.05em;
+}
+
+.portais-sub {
+  text-align: center;
+  color: #cbb98a;
+  margin: 0.5rem 0 2rem;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.portal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 0.75rem;
+  cursor: pointer;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+}
+
+.portal-card img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.portal-title {
+  font-size: 0.95rem;
+  color: #f6e7b0;
+}
+
+.portal-place {
+  font-size: 0.75rem;
+  color: #8a8270;
+}
+
+.portal-locked {
+  aspect-ratio: unset;
+  justify-content: center;
+  min-height: 180px;
+  opacity: 0.5;
+  cursor: default;
+}
+
+.portal-continent {
+  aspect-ratio: unset;
+  justify-content: center;
+  min-height: 100px;
+  text-decoration: none;
+}
+
+.portais-section {
+  margin-top: 2.5rem;
+  text-align: center;
+  font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+  color: #f6e7b0;
+}
+
+/* Tela de Vínculos / Diário */
+.vinculo-list {
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.vinculo-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.vinculo-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.5rem;
+}
+
+.vinculo-pct {
+  color: #d4af37;
+  font-weight: bold;
+}
+
+.vinculo-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+
+.vinculo-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9a7418, #f6e7b0);
+}
+
+.vinculo-desc {
+  font-size: 0.85rem;
+  color: #cbb98a;
+  line-height: 1.4;
+}
+
+/* Player de vídeo dos Portais (modal por cima da tela) */
+.video-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.video-modal-inner {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 9 / 16;
+  background: #000;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.25);
+}
+
+.video-modal-inner iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+.video-modal-fechar {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #f6e7b0;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Tela do Guardião do Nó (chat) */
+.guardiao {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: #f2e9d8;
+  font-family: Georgia, "Times New Roman", serif;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(40, 60, 110, 0.35), transparent 55%),
+    radial-gradient(ellipse at 80% 100%, rgba(80, 50, 110, 0.25), transparent 55%),
+    #000;
+}
+
+.guardiao-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.5rem 1.25rem 1rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.guardiao-avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background: radial-gradient(circle at 35% 30%, rgba(246, 231, 176, 0.35), rgba(20, 30, 60, 0.9));
+  border: 1px solid rgba(212, 175, 55, 0.5);
+}
+
+.guardiao-header h1 {
+  font-size: clamp(1.05rem, 4vw, 1.3rem);
+  color: #f6e7b0;
+  letter-spacing: 0.04em;
+}
+
+.guardiao-sub {
+  font-size: 0.75rem;
+  color: #8a8270;
+  margin-top: 0.1rem;
+}
+
+.guardiao-chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.msg {
+  max-width: 80%;
+  padding: 0.7rem 1rem;
+  border-radius: 16px;
+  line-height: 1.45;
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+}
+
+.msg-guardiao {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #f2e9d8;
+  border-bottom-left-radius: 4px;
+}
+
+.msg-viajante {
+  align-self: flex-end;
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
+  color: #1a1204;
+  border-bottom-right-radius: 4px;
+}
+
+.msg-pensando {
+  align-self: flex-start;
+  color: #8a8270;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 0.2rem 1rem;
+}
+
+.guardiao-form {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.25rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.25);
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.guardiao-form input {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f2e9d8;
+}
+
+.guardiao-form input::placeholder {
+  color: #8a8270;
+}
+
+.btn-mic,
+.btn-enviar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f6e7b0;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.btn-enviar {
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
+  color: #1a1204;
+  border: none;
+}
+
+.btn-mic.gravando {
+  background: rgba(212, 60, 60, 0.25);
+  border-color: rgba(255, 120, 120, 0.6);
+}
+
+.guardiao-seguir {
+  display: block;
+  margin: 0.9rem 1.25rem 1.1rem;
+  padding: 0.85rem;
+  text-align: center;
+  color: #1a1204;
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.35);
+}
+
+.guardiao-seguir:hover {
+  filter: brightness(1.08);
+}
+
+/* Botão flutuante "falar com o Guardião", presente nas telas principais
+   (Portais, Universos, Diário, Vínculos) pra nunca deixar o Viajante se
+   perder sem saber como voltar a conversar com ele. */
+.guardiao-fab {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
+  color: #1a1204;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: bold;
+  font-size: 0.85rem;
+  text-decoration: none;
+  white-space: normal;
+  max-width: 90vw;
+  width: max-content;
+  box-shadow: 0 4px 24px rgba(212, 175, 55, 0.5);
+}
+
+.guardiao-fab:hover {
+  filter: brightness(1.08);
+}
+
+.guardiao-seguir-destaque {
+  color: #1a1204;
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
+  border-radius: 999px;
+  margin: 0 1.25rem 0.9rem;
+  padding: 0.7rem;
+  font-weight: bold;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  animation: pulso-suave 1.8s ease-in-out infinite;
+}
+
+@keyframes pulso-suave {
+  0%, 100% { box-shadow: 0 0 14px rgba(212, 175, 55, 0.4); }
+  50% { box-shadow: 0 0 26px rgba(212, 175, 55, 0.7); }
+}
+
+.btn-continuar {
+  font-family: inherit;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  color: #1a1204;
+  background: linear-gradient(180deg, #f6e7b0, #d4af37 55%, #9a7418);
+  border: 1px solid #f6e7b0;
+  border-radius: 999px;
+  padding: 0.9rem 2.4rem;
+  cursor: pointer;
+  box-shadow: 0 0 24px rgba(212, 175, 55, 0.4);
+  width: 100%;
+  max-width: 320px;
+}
