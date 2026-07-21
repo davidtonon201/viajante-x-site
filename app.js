@@ -127,6 +127,19 @@ document.querySelectorAll("button.portal-card:not(.portal-locked)").forEach((car
   });
 });
 
+// Botão de som ambiente do vídeo de fundo da tela do Guardião. Navegadores
+// bloqueiam vídeo com som tocando sozinho, então ele sempre começa mudo —
+// esse botão deixa o Viajante ativar o som quando quiser.
+const videoFundoGuardiao = document.querySelector("#guardiao-video-fundo");
+const btnSom = document.querySelector("#btn-som");
+if (videoFundoGuardiao && btnSom) {
+  btnSom.addEventListener("click", () => {
+    videoFundoGuardiao.muted = !videoFundoGuardiao.muted;
+    btnSom.textContent = videoFundoGuardiao.muted ? "🔇" : "🔊";
+    if (!videoFundoGuardiao.muted) videoFundoGuardiao.play().catch(() => {});
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Tela do Guardião do Nó (chat) — ligado na IA de verdade (Gemini), via
 // Cloudflare Pages Function (functions/api/guardiao-chat.js). A chave de API
