@@ -1,15 +1,9 @@
-// Cloudflare Pages Function — equivalente à Netlify Function guardiao-chat.js.
-// Fica em functions/api/guardiao-chat.js, o que faz o Cloudflare Pages
-// expor ela sozinho em /api/guardiao-chat (sem precisar de nenhum arquivo
-// de configuração extra).
+// Worker único do projeto (Cloudflare Workers + assets estáticos, formato
+// atual deles, unificado). Serve o site estático normalmente e responde
+// à rota /api/guardiao-chat com a chamada real pro Gemini.
 //
-// A chave de API (GEMINI_API_KEY) fica como variável de ambiente configurada
-// no painel do Cloudflare Pages — nunca aparece no código que o navegador baixa.
-//
-// Recebe do front-end: { nome, vinculoPercentual, historico }
-// historico = [{ autor: "viajante"|"guardiao", texto: "..." }, ...]
-//
-// Devolve: { resposta: "...", seguirViagem: true|false }
+// A chave de API (GEMINI_API_KEY) fica como Secret configurado no painel
+// do Cloudflare — nunca aparece nesse código nem no que o navegador baixa.
 
 const MODELO = "gemini-flash-latest";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`;
@@ -43,9 +37,7 @@ function montarContents(historico) {
   }));
 }
 
-export async function onRequestPost(context) {
-  const { request, env } = context;
-
+async function handleGuardiaoChat(request, env) {
   const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) {
     return new Response(
@@ -150,3 +142,13 @@ export async function onRequestPost(context) {
     });
   }
 }
+
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    if (url.pathname === "/api/guardiao-chat" && request.method === "POST") {
+      return handleGuardiaoChat(request, env);
+    }
+    return env.ASSETS.fetch(request);
+  },
+};
