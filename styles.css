@@ -294,23 +294,44 @@ html, body {
 
 /* Tela do Guardião do Nó (chat) */
 .guardiao {
+  position: relative;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   color: #f2e9d8;
   font-family: Georgia, "Times New Roman", serif;
+  background: #000;
+  overflow: hidden;
+}
+
+.guardiao-video-fundo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.guardiao-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
   background:
     radial-gradient(ellipse at 20% 0%, rgba(40, 60, 110, 0.35), transparent 55%),
     radial-gradient(ellipse at 80% 100%, rgba(80, 50, 110, 0.25), transparent 55%),
-    #000;
+    rgba(0, 0, 0, 0.62);
 }
 
 .guardiao-header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.9rem;
   padding: 1.5rem 1.25rem 1rem;
   border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .guardiao-avatar {
@@ -339,6 +360,8 @@ html, body {
 }
 
 .guardiao-chat {
+  position: relative;
+  z-index: 2;
   flex: 1;
   overflow-y: auto;
   padding: 1.25rem;
@@ -361,7 +384,9 @@ html, body {
 
 .msg-guardiao {
   align-self: flex-start;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(10, 10, 15, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   border: 1px solid rgba(212, 175, 55, 0.3);
   color: #f2e9d8;
   border-bottom-left-radius: 4px;
@@ -383,6 +408,8 @@ html, body {
 }
 
 .guardiao-form {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -391,6 +418,7 @@ html, body {
   max-width: 640px;
   width: 100%;
   margin: 0 auto;
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .guardiao-form input {
@@ -433,6 +461,8 @@ html, body {
 }
 
 .guardiao-seguir {
+  position: relative;
+  z-index: 2;
   display: block;
   margin: 0.9rem 1.25rem 1.1rem;
   padding: 0.85rem;
