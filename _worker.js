@@ -1,12 +1,18 @@
-// Worker único do projeto (Cloudflare Workers + assets estáticos, formato
-// atual deles, unificado). Serve o site estático normalmente e responde
-// à rota /api/guardiao-chat com a chamada real pro Gemini.
+// Worker único do projeto (Cloudflare Workers + assets estáticos).
+// Serve o site estático normalmente e responde à rota /api/guardiao-chat.
 //
-// A chave de API (GEMINI_API_KEY) fica como Secret configurado no painel
-// do Cloudflare — nunca aparece nesse código nem no que o navegador baixa.
+// Tenta o Gemini primeiro (com retry pra 503/429). Se mesmo assim falhar,
+// cai automaticamente pro Groq (segunda IA de reserva, grátis) — o
+// Viajante não percebe a troca, só recebe uma resposta de qualquer jeito.
+//
+// As chaves de API (GEMINI_API_KEY, GROQ_API_KEY) ficam como Secrets
+// configurados no painel do Cloudflare — nunca aparecem nesse código.
 
-const MODELO = "gemini-flash-latest";
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`;
+const GEMINI_MODELO = "gemini-flash-latest";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODELO}:generateContent`;
+
+const GROQ_MODELO = "llama-3.3-70b-versatile";
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 const SYSTEM_PROMPT = `Você é o Guardião do Nó, guardião do continente de Ybera no mundo de Viajante X.
 
@@ -32,18 +38,113 @@ DO QUE NÃO FALA: se perguntado sobre a vida pessoal de Coema/Iberaí/Jandira em
 REGRA IMPORTANTE DE COMPORTAMENTO: se o Viajante disser, de qualquer forma, que quer seguir em frente / continuar a jornada / ir agora para os Portais / parar de conversar por ora, você deve reconhecer isso na resposta (nunca ignorar ou dar resposta genérica) — se despede à sua maneira e sinaliza que o caminho está aberto. Nesse caso específico, termine sua resposta (numa linha própria, sozinha) com o marcador exato: [[SEGUIR_VIAGEM]]
 Em qualquer outro caso, não use esse marcador.`;
 
-function montarContents(historico) {
+function extrairMarcador(texto) {
+  let seguirViagem = false;
+  if (texto.includes("[[SEGUIR_VIAGEM]]")) {
+    seguirViagem = true;
+    texto = texto.replace("[[SEGUIR_VIAGEM]]", "").trim();
+  }
+  return { texto, seguirViagem };
+}
+
+function montarContentsGemini(historico) {
   return historico.map((m) => ({
     role: m.autor === "viajante" ? "user" : "model",
     parts: [{ text: m.texto }],
   }));
 }
 
+function montarMensagensGroq(systemPromptCompleto, historico) {
+  const mensagens = [{ role: "system", content: systemPromptCompleto }];
+  for (const m of historico) {
+    mensagens.push({
+      role: m.autor === "viajante" ? "user" : "assistant",
+      content: m.texto,
+    });
+  }
+  return mensagens;
+}
+
+// Tenta o Gemini com até 3 tentativas (retry só em 503/429, sobrecarga
+// temporária). Retorna { texto, seguirViagem } em caso de sucesso, ou
+// lança um erro (throw) se esgotar as tentativas — quem chama decide
+// se cai pro Groq ou desiste.
+async function chamarGemini(systemPromptCompleto, historico, apiKey, signal) {
+  const body = {
+    systemInstruction: { parts: [{ text: systemPromptCompleto }] },
+    contents: montarContentsGemini(historico),
+    generationConfig: { maxOutputTokens: 260, thinkingConfig: { thinkingBudget: 0 } },
+  };
+
+  const MAX_TENTATIVAS = 3;
+  let resp;
+  let ultimoErro = "";
+
+  for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
+    resp = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal,
+      body: JSON.stringify(body),
+    });
+
+    if (resp.ok) break;
+
+    ultimoErro = await resp.text();
+    const tentaDeNovo = (resp.status === 503 || resp.status === 429) && tentativa < MAX_TENTATIVAS;
+    console.error(`Erro Gemini (tentativa ${tentativa}/${MAX_TENTATIVAS}):`, resp.status, ultimoErro);
+    if (!tentaDeNovo) break;
+    await new Promise((r) => setTimeout(r, 700 * tentativa));
+  }
+
+  if (!resp.ok) {
+    throw new Error(`gemini_falhou_${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const parts = data?.candidates?.[0]?.content?.parts || [];
+  const textoBruto = parts.filter((p) => !p.thought).map((p) => p.text || "").join("") || "";
+  return extrairMarcador(textoBruto);
+}
+
+// Groq — segunda IA, entra só se o Gemini falhar de vez. API compatível
+// com o formato da OpenAI (chat completions).
+async function chamarGroq(systemPromptCompleto, historico, apiKey, signal) {
+  const body = {
+    model: GROQ_MODELO,
+    messages: montarMensagensGroq(systemPromptCompleto, historico),
+    max_tokens: 260,
+    temperature: 0.8,
+  };
+
+  const resp = await fetch(GROQ_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    signal,
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    console.error("Erro Groq:", resp.status, errText);
+    throw new Error(`groq_falhou_${resp.status}`);
+  }
+
+  const data = await resp.json();
+  const textoBruto = data?.choices?.[0]?.message?.content || "";
+  return extrairMarcador(textoBruto);
+}
+
 async function handleGuardiaoChat(request, env) {
-  const apiKey = env.GEMINI_API_KEY;
-  if (!apiKey) {
+  const geminiKey = env.GEMINI_API_KEY;
+  const groqKey = env.GROQ_API_KEY;
+
+  if (!geminiKey && !groqKey) {
     return new Response(
-      JSON.stringify({ erro: "GEMINI_API_KEY não configurada no servidor." }),
+      JSON.stringify({ erro: "Nenhuma chave de IA configurada no servidor." }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -69,75 +170,55 @@ async function handleGuardiaoChat(request, env) {
   const contextoPessoal =
     `\n\nCONTEXTO DESTE VIAJANTE AGORA: nome = "${nome || "Viajante"}", ` +
     `vínculo atual com você = ${typeof vinculoPercentual === "number" ? vinculoPercentual : 0}%.`;
-
-  const body = {
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT + contextoPessoal }] },
-    contents: montarContents(historico),
-    generationConfig: { maxOutputTokens: 260, thinkingConfig: { thinkingBudget: 0 } },
-  };
+  const systemPromptCompleto = SYSTEM_PROMPT + contextoPessoal;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 9000);
 
-  const MAX_TENTATIVAS = 3;
-
   try {
-    let resp;
-    let ultimoErro = "";
-    for (let tentativa = 1; tentativa <= MAX_TENTATIVAS; tentativa++) {
-      resp = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        signal: controller.signal,
-        body: JSON.stringify(body),
-      });
+    let resultado = null;
+    let usouReserva = false;
 
-      if (resp.ok) break;
+    if (geminiKey) {
+      try {
+        resultado = await chamarGemini(systemPromptCompleto, historico, geminiKey, controller.signal);
+      } catch (err) {
+        console.error("Gemini indisponível, tentando Groq como reserva:", err.message);
+      }
+    }
 
-      ultimoErro = await resp.text();
-      const tentaDeNovo = (resp.status === 503 || resp.status === 429) && tentativa < MAX_TENTATIVAS;
-      console.error(`Erro Gemini (tentativa ${tentativa}/${MAX_TENTATIVAS}):`, resp.status, ultimoErro);
-      if (!tentaDeNovo) break;
-      await new Promise((r) => setTimeout(r, 700 * tentativa));
+    if (!resultado && groqKey) {
+      try {
+        resultado = await chamarGroq(systemPromptCompleto, historico, groqKey, controller.signal);
+        usouReserva = true;
+      } catch (err) {
+        console.error("Groq (reserva) também falhou:", err.message);
+      }
     }
 
     clearTimeout(timeoutId);
 
-    if (!resp.ok) {
-      const mensagem =
-        resp.status === 503
-          ? "O Guardião está com muita gente pra atender agora. Espera um instante e tenta de novo."
-          : "A IA não respondeu dessa vez. Tenta de novo.";
-      return new Response(JSON.stringify({ erro: mensagem }), {
-        status: 502,
-        headers: { "Content-Type": "application/json" },
-      });
+    if (!resultado) {
+      return new Response(
+        JSON.stringify({ erro: "As duas IAs estão indisponíveis agora. Tenta de novo em instantes." }),
+        { status: 502, headers: { "Content-Type": "application/json" } }
+      );
     }
 
-    const data = await resp.json();
-    const parts = data?.candidates?.[0]?.content?.parts || [];
-    let texto = parts.filter((p) => !p.thought).map((p) => p.text || "").join("") || "";
-
-    let seguirViagem = false;
-    if (texto.includes("[[SEGUIR_VIAGEM]]")) {
-      seguirViagem = true;
-      texto = texto.replace("[[SEGUIR_VIAGEM]]", "").trim();
-    }
-
-    return new Response(JSON.stringify({ resposta: texto, seguirViagem }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ resposta: resultado.texto, seguirViagem: resultado.seguirViagem, reserva: usouReserva }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === "AbortError") {
-      console.error("Timeout chamando Gemini (>9s)");
+      console.error("Timeout geral (>9s)");
       return new Response(
         JSON.stringify({ erro: "O Guardião demorou demais pra responder. Tenta de novo." }),
         { status: 504, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.error("Erro ao chamar Gemini:", err);
+    console.error("Erro inesperado:", err);
     return new Response(JSON.stringify({ erro: "Erro interno ao falar com a IA." }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
