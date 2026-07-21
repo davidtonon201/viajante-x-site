@@ -305,14 +305,7 @@ html, body {
 }
 
 .guardiao-video-blur {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(35px) brightness(0.65) saturate(1.2);
-  transform: scale(1.15);
-  z-index: 0;
+  display: none;
 }
 
 .guardiao-video-fundo {
@@ -320,7 +313,7 @@ html, body {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   z-index: 0;
 }
 
