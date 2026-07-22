@@ -88,7 +88,7 @@ function abrirPlayerVideo(videoId, titulo) {
     <div class="video-modal-inner">
       <button class="video-modal-fechar" type="button" aria-label="Fechar">✕</button>
       <iframe
-        src="https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0"
+        src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0"
         title="${titulo}"
         frameborder="0"
         allow="autoplay; encrypted-media; picture-in-picture"
