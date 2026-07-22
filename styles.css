@@ -347,6 +347,29 @@ html, body {
   cursor: pointer;
 }
 
+/* Bolinha flutuante pra reabrir o histórico da conversa com o Guardião —
+   útil se o Viajante sair da tela (ou o app recarregar) no meio de uma
+   resposta e quiser voltar pra ver o que já foi dito. */
+.guardiao-historico-fab {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 3;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #f6e7b0;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .guardiao-header {
   position: relative;
   z-index: 2;
@@ -463,17 +486,23 @@ html, body {
 .btn-mic,
 .btn-enviar {
   flex-shrink: 0;
-  width: 44px;
-  height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(212, 175, 55, 0.5);
-  background: rgba(255, 255, 255, 0.05);
-  color: #f6e7b0;
-  font-size: 1.1rem;
   cursor: pointer;
 }
 
+.btn-mic {
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f6e7b0;
+  font-size: 1.7rem;
+}
+
 .btn-enviar {
+  width: 44px;
+  height: 44px;
+  font-size: 1.1rem;
   background: linear-gradient(180deg, #f6e7b0, #d4af37 70%);
   color: #1a1204;
   border: none;
@@ -566,4 +595,61 @@ html, body {
   box-shadow: 0 0 24px rgba(212, 175, 55, 0.4);
   width: 100%;
   max-width: 320px;
+}
+
+/* Painel do histórico da conversa (abre por cima da tela do Guardião) */
+.historico-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.historico-painel {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  background: #0c0c10;
+  border-top: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 40px rgba(212, 175, 55, 0.2);
+}
+
+.historico-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.historico-cabecalho h2 {
+  font-size: 1rem;
+  color: #f6e7b0;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.historico-fechar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f6e7b0;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.historico-lista {
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
