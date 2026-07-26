@@ -68,3 +68,42 @@ async function buscarVinculosAtuais() {
     .eq("user_id", session.user.id);
   return data || [];
 }
+
+// ---------------------------------------------------------------------------
+// Vídeos assistidos — memória de quais Portais o Viajante já viu do início ao
+// fim. Usado pelo Guardião do Nó pra saber quando pode comentar fragmentos de
+// uma história (pós-vídeo) em vez de só redirecionar pro vídeo (pré-vídeo).
+// Requer a tabela `videos_assistidos` no Supabase — ver
+// `01_FUNDACAO/migracao_videos_assistidos.sql`.
+// ---------------------------------------------------------------------------
+
+// Marca um vídeo como assistido do início ao fim (chamado quando o player do
+// YouTube dispara o evento "ended", nunca antes disso — assistir só uma
+// prévia não conta, é intencional: o Guardião só solta fragmento de quem
+// realmente viu a história inteira).
+async function marcarVideoAssistido(videoSlug) {
+  const session = await garantirSessao();
+  if (!session) return false;
+  const { error } = await supabaseClient
+    .from("videos_assistidos")
+    .upsert(
+      { user_id: session.user.id, video_slug: videoSlug },
+      { onConflict: "user_id,video_slug" }
+    );
+  if (error) {
+    console.error("Erro ao marcar vídeo assistido:", error);
+    return false;
+  }
+  return true;
+}
+
+// Busca a lista de slugs de vídeo que o Viajante já assistiu por completo.
+async function buscarVideosAssistidos() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) return [];
+  const { data } = await supabaseClient
+    .from("videos_assistidos")
+    .select("video_slug")
+    .eq("user_id", session.user.id);
+  return (data || []).map((v) => v.video_slug);
+}
