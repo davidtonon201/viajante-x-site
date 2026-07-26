@@ -80,20 +80,39 @@ if (listaVinculos) {
 }
 
 // Player de vídeo dos Portais — abre o vídeo (hospedado no YouTube, "não listado")
-// num modal por cima da tela, sem sair do app.
-function abrirPlayerVideo(videoId, titulo) {
+// num modal por cima da tela, sem sair do app. Usa a API oficial do player do
+// YouTube (em vez de um <iframe> cru) porque precisamos saber quando o
+// Viajante chega no fim de verdade — só nesse momento o vídeo é marcado como
+// "assistido", o que destrava o Guardião do Nó comentar fragmentos daquela
+// história depois (ver `videos_assistidos` em supabase-client.js). Assistir
+// só uma prévia e fechar não conta, de propósito.
+let ytApiPromise = null;
+function carregarYouTubeAPI() {
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  if (ytApiPromise) return ytApiPromise;
+  ytApiPromise = new Promise((resolve) => {
+    const anteriorPronto = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof anteriorPronto === "function") anteriorPronto();
+      resolve();
+    };
+    if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+    }
+  });
+  return ytApiPromise;
+}
+
+function abrirPlayerVideo(videoId, titulo, videoSlug) {
   const overlay = document.createElement("div");
   overlay.className = "video-modal";
+  const playerId = "yt-player-" + Date.now();
   overlay.innerHTML = `
     <div class="video-modal-inner">
       <button class="video-modal-fechar" type="button" aria-label="Fechar">✕</button>
-      <iframe
-        src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&playsinline=1&rel=0"
-        title="${titulo}"
-        frameborder="0"
-        allow="autoplay; encrypted-media; picture-in-picture"
-        allowfullscreen
-      ></iframe>
+      <div id="${playerId}"></div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -109,6 +128,21 @@ function abrirPlayerVideo(videoId, titulo) {
       document.removeEventListener("keydown", escFecha);
     }
   });
+
+  carregarYouTubeAPI().then(() => {
+    if (!document.getElementById(playerId)) return; // Viajante já fechou o modal antes da API carregar
+    new YT.Player(playerId, {
+      videoId,
+      playerVars: { autoplay: 1, mute: 1, playsinline: 1, rel: 0, title: titulo },
+      events: {
+        onStateChange: (event) => {
+          if (event.data === YT.PlayerState.ENDED && videoSlug) {
+            marcarVideoAssistido(videoSlug);
+          }
+        },
+      },
+    });
+  });
 }
 
 // Cards de história na tela de Portais. Se o card já tiver um vídeo conectado
@@ -118,11 +152,12 @@ document.querySelectorAll("button.portal-card:not(.portal-locked)").forEach((car
   card.addEventListener("click", () => {
     const titulo = card.querySelector(".portal-title")?.textContent;
     const videoId = card.getAttribute("data-video-id");
+    const videoSlug = card.getAttribute("data-video-slug");
     const pendente = !videoId || videoId.startsWith("COLOQUE_AQUI_ID");
     if (pendente) {
       alert(`"${titulo}" — o vídeo ainda vai ser conectado quando estiver hospedado.`);
     } else {
-      abrirPlayerVideo(videoId, titulo);
+      abrirPlayerVideo(videoId, titulo, videoSlug);
     }
   });
 });
@@ -142,8 +177,8 @@ if (videoFundoGuardiao && btnSom) {
 
 // ---------------------------------------------------------------------------
 // Tela do Guardião do Nó (chat) — ligado na IA de verdade (Gemini), via
-// Cloudflare Pages Function (functions/api/guardiao-chat.js). A chave de API
-// fica só no servidor; o navegador só fala com nossa própria função.
+// Cloudflare Workers (_worker.js, rota /api/guardiao-chat).
+// A chave de API fica só no servidor; o navegador só fala com nossa própria rota.
 // ---------------------------------------------------------------------------
 const chatGuardiao = document.querySelector("#guardiao-chat");
 if (chatGuardiao) {
@@ -153,6 +188,7 @@ if (chatGuardiao) {
   const linkSeguir = document.querySelector(".guardiao-seguir");
   let nomeViajante = "Viajante";
   let vinculoAtual = 0;
+  let videosAssistidos = [];
   const historico = []; // [{ autor: "viajante"|"guardiao", texto }]
 
   // Guarda a conversa no localStorage a cada mensagem, pra ela sobreviver
@@ -243,15 +279,20 @@ if (chatGuardiao) {
     const resp = await fetch("/api/guardiao-chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nomeViajante, vinculoPercentual: vinculoAtual, historico }),
+      body: JSON.stringify({ nome: nomeViajante, vinculoPercentual: vinculoAtual, historico, videosAssistidos }),
     });
     if (!resp.ok) throw new Error("Falha na resposta do servidor");
     return resp.json();
   }
 
   async function iniciarConversa() {
-    const [perfil, vinculos] = await Promise.all([buscarPerfilAtual(), buscarVinculosAtuais()]);
+    const [perfil, vinculos, videos] = await Promise.all([
+      buscarPerfilAtual(),
+      buscarVinculosAtuais(),
+      buscarVideosAssistidos(),
+    ]);
     if (perfil?.nome) nomeViajante = perfil.nome;
+    videosAssistidos = videos || [];
     const vinculoGuardiao = (vinculos || []).find((v) => v.personagem === "Guardião do Nó");
     if (vinculoGuardiao) vinculoAtual = vinculoGuardiao.percentual;
 
