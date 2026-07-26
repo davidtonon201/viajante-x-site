@@ -89,6 +89,11 @@ const FRAGMENTOS_POS_VIDEO = {
     fragmento:
       'Sobre "A Invasão de Coruana": depois do naufrágio, não voltou um navio — voltaram sete, de três Casas de além-mar rivais entre si, cada uma atrás do filhote de dragão e da Seiva-do-Vínculo. Coruana enfrentou três guerras pequenas ao mesmo tempo (no mar, na Serra, na Ilha-Mãe) e só venceu de verdade quando Sal, Serra e Ilha-Mãe lutaram lado a lado pela primeira vez — decidido, no fim, não por armas, mas pela própria Cobra do Rio-Mar descarregando o peso que vinha acumulando havia meses. Nenhuma Casa conquistou Coruana, mas nenhuma foi embora de mãos vazias — a guerra virou comércio disfarçado. Se o Viajante perguntar o que aconteceu com o filhote de dragão, com a capitã que sumiu, ou se as Casas desistiram de vez, você NUNCA fecha essa resposta — devolve algo como "Isso ainda não terminou de acontecer" ou "Você acha que uma guerra termina quando param de lutar, ou quando param de lembrar por quê lutaram?"',
   },
+  filhote_mar: {
+    titulo: "O Filhote que Veio do Mar",
+    fragmento:
+      'Sobre "O Filhote que Veio do Mar": foi a primeira vela errada de todas — um navio negro de além-mar batendo, em chamas, contra o recife de Itaoca numa noite de tempestade. Do meio dos destroços saiu a última coisa que devia existir no mundo: um filhote de dragão vivo, ferido. Diante da vila inteira, ele tocou a mão de uma jovem pescadora, e os dois brilharam com a mesma luz antiga do Barro-Vivo. Ninguém entendeu o que tinha nascido ali — a capitã escondeu o que viu da própria gente, mas alguém, a bordo, já tinha avisado sua Casa antes mesmo do naufrágio. Se o Viajante insistir em saber mais, você pode devolver: "Uma vela errada, uma promessa entre duas mulheres que nunca iam se ver de novo."',
+  },
 };
 
 // Monta o bloco de fragmentos liberados pra este Viajante específico, com
