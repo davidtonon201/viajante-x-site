@@ -1,3 +1,17 @@
+// Botão de som ambiente da tela inicial (hero). Navegadores bloqueiam áudio
+// com som tocando sozinho, então ele sempre começa mudo — esse botão deixa
+// o Viajante ativar o som quando quiser. Mesmo padrão do botão de som do
+// vídeo de fundo da tela do Guardião.
+const audioTemaInicio = document.querySelector("#audio-tema-inicio");
+const btnSomHero = document.querySelector("#btn-som-hero");
+if (audioTemaInicio && btnSomHero) {
+  btnSomHero.addEventListener("click", () => {
+    audioTemaInicio.muted = !audioTemaInicio.muted;
+    btnSomHero.textContent = audioTemaInicio.muted ? "🔇" : "🔊";
+    if (!audioTemaInicio.muted) audioTemaInicio.play().catch(() => {});
+  });
+}
+
 // Registra o service worker (necessário para o PWA funcionar offline e ser instalável)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -176,8 +190,8 @@ if (videoFundoGuardiao && btnSom) {
 }
 
 // ---------------------------------------------------------------------------
-// Tela do Guardião do Nó (chat) — ligado na IA de verdade (Gemini), via
-// Cloudflare Workers (_worker.js, rota /api/guardiao-chat).
+// Tela do Guardião do Nó (chat) — ligado na IA de verdade (Gemini, com
+// reserva Groq), via Cloudflare Workers (_worker.js, rota /api/guardiao-chat).
 // A chave de API fica só no servidor; o navegador só fala com nossa própria rota.
 // ---------------------------------------------------------------------------
 const chatGuardiao = document.querySelector("#guardiao-chat");
@@ -191,30 +205,6 @@ if (chatGuardiao) {
   let videosAssistidos = [];
   const historico = []; // [{ autor: "viajante"|"guardiao", texto }]
 
-  // Guarda a conversa no localStorage a cada mensagem, pra ela sobreviver
-  // se o Viajante sair da tela (ou o app recarregar) no meio de uma resposta
-  // — antes disso, sair da tela do Guardião apagava tudo.
-  const HISTORICO_KEY = "viajante_historico_guardiao_msgs";
-
-  function salvarHistorico() {
-    try {
-      localStorage.setItem(HISTORICO_KEY, JSON.stringify(historico));
-    } catch (err) {
-      console.warn("Não consegui salvar o histórico do Guardião:", err);
-    }
-  }
-
-  function carregarHistoricoSalvo() {
-    try {
-      const bruto = localStorage.getItem(HISTORICO_KEY);
-      const lista = bruto ? JSON.parse(bruto) : [];
-      return Array.isArray(lista) ? lista : [];
-    } catch (err) {
-      console.warn("Não consegui ler o histórico salvo do Guardião:", err);
-      return [];
-    }
-  }
-
   function adicionarMensagem(texto, autor) {
     const div = document.createElement("div");
     div.className = `msg msg-${autor}`;
@@ -222,57 +212,6 @@ if (chatGuardiao) {
     chatGuardiao.appendChild(div);
     chatGuardiao.scrollTop = chatGuardiao.scrollHeight;
     return div;
-  }
-
-  // Bolinha flutuante (💬) que abre um painel com o histórico completo da
-  // conversa — pensada pra quando o Viajante perde de vista uma resposta
-  // do Guardião (saiu da tela, o app recarregou, etc.) e precisa reabrir
-  // pra ler de novo.
-  function abrirHistoricoGuardiao() {
-    const overlay = document.createElement("div");
-    overlay.className = "historico-overlay";
-    overlay.innerHTML = `
-      <div class="historico-painel">
-        <div class="historico-cabecalho">
-          <h2>Histórico da conversa</h2>
-          <button class="historico-fechar" type="button" aria-label="Fechar">✕</button>
-        </div>
-        <div class="historico-lista"></div>
-      </div>
-    `;
-    const listaEl = overlay.querySelector(".historico-lista");
-    if (!historico.length) {
-      const vazio = document.createElement("p");
-      vazio.className = "vinculo-desc";
-      vazio.textContent = "Ainda não há conversa registrada.";
-      listaEl.appendChild(vazio);
-    } else {
-      historico.forEach((msg) => {
-        const div = document.createElement("div");
-        div.className = `msg msg-${msg.autor}`;
-        div.textContent = msg.texto;
-        listaEl.appendChild(div);
-      });
-    }
-    document.body.appendChild(overlay);
-    listaEl.scrollTop = listaEl.scrollHeight;
-
-    const fechar = () => overlay.remove();
-    overlay.querySelector(".historico-fechar").addEventListener("click", fechar);
-    overlay.addEventListener("click", (event) => {
-      if (event.target === overlay) fechar();
-    });
-    document.addEventListener("keydown", function escFecha(event) {
-      if (event.key === "Escape") {
-        fechar();
-        document.removeEventListener("keydown", escFecha);
-      }
-    });
-  }
-
-  const btnHistorico = document.querySelector("#btn-historico");
-  if (btnHistorico) {
-    btnHistorico.addEventListener("click", abrirHistoricoGuardiao);
   }
 
   async function falarComGuardiao() {
@@ -296,22 +235,12 @@ if (chatGuardiao) {
     const vinculoGuardiao = (vinculos || []).find((v) => v.personagem === "Guardião do Nó");
     if (vinculoGuardiao) vinculoAtual = vinculoGuardiao.percentual;
 
-    const historicoSalvo = carregarHistoricoSalvo();
-    if (historicoSalvo.length) {
-      historicoSalvo.forEach((msg) => {
-        adicionarMensagem(msg.texto, msg.autor);
-        historico.push(msg);
-      });
-      return;
-    }
-
     const abertura =
       `${nomeViajante}. Coema falou de você antes mesmo de eu te ver chegar.\n` +
       `Eu sou o Guardião do Nó — não conto a história de Ybera, eu acompanho o que você faz com ela.\n` +
       `Pode falar comigo por texto, ou por voz, quando quiser.`;
     adicionarMensagem(abertura, "guardiao");
     historico.push({ autor: "guardiao", texto: abertura });
-    salvarHistorico();
     localStorage.setItem("viajante_falou_com_guardiao", "true");
   }
   iniciarConversa();
@@ -322,7 +251,6 @@ if (chatGuardiao) {
     if (!texto) return;
     adicionarMensagem(texto, "viajante");
     historico.push({ autor: "viajante", texto });
-    salvarHistorico();
     inputGuardiao.value = "";
 
     const pensando = document.createElement("div");
@@ -340,7 +268,6 @@ if (chatGuardiao) {
       }
       adicionarMensagem(resposta, "guardiao");
       historico.push({ autor: "guardiao", texto: resposta });
-      salvarHistorico();
       if (seguirViagem && linkSeguir) {
         linkSeguir.textContent = "seguir viagem →";
         linkSeguir.classList.add("guardiao-seguir-destaque");
