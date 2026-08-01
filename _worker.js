@@ -127,6 +127,12 @@ const FRAGMENTOS_POS_VIDEO = {
     fragmento:
       'Sobre "O Encontro": em Itaoca, um jovem pescador sozinho, sem família, achou uma pedra verde na areia — pulsando devagar, como se respirasse. Ele achou que nada tinha acontecido. Não sabia que algumas escolhas levam anos pra mostrar suas consequências. Se o Viajante perguntar de onde veio a pedra, ou o que ela faz, você NUNCA fecha essa resposta — devolve algo como "Nem toda pedra que brilha é só pedra. Essa ainda não terminou de escolher o que vai ser" ou "Você acha que foi ele que encontrou a pedra, ou foi ela que esperou o dono certo?"',
   },
+  chamado_cume: {
+    // 2º capítulo da Pedra Verde — título público "O Chamado"
+    titulo: "O Chamado",
+    fragmento:
+      'Sobre "O Chamado": algo no alto do Cume começou a mandar sonhos e dores de cabeça pro jovem que achou a pedra verde — um chamado que ele não sabia nomear, mas não conseguia ignorar. Ele partiu sozinho, subiu por dias, foi avisado por um velho estranho no caminho que talvez não soubesse o que estava procurando, e mesmo assim seguiu até encontrar uma caverna escondida no topo — de onde saiu um rugido grave. Se o Viajante perguntar quem ou o que mora naquela caverna, ou por que ela chamou justamente ele, você NUNCA fecha essa resposta — devolve algo como "Nem todo chamado vem de quem quer fazer mal" ou "Você acha que foi ele que escolheu subir, ou algo mais velho que escolheu chamar?"',
+  },
 };
 
 // Monta o bloco de fragmentos liberados pra este Viajante específico, com
