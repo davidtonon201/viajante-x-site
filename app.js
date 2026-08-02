@@ -126,10 +126,16 @@ function abrirPlayerVideo(videoId, titulo, videoSlug) {
   overlay.innerHTML = `
     <div class="video-modal-inner">
       <button class="video-modal-fechar" type="button" aria-label="Fechar">✕</button>
+      <button class="video-modal-som" type="button" aria-label="Ativar som">🔇</button>
+      <button class="video-modal-expandir" type="button" aria-label="Tela cheia">⤢</button>
       <div id="${playerId}"></div>
     </div>
   `;
   document.body.appendChild(overlay);
+
+  const inner = overlay.querySelector(".video-modal-inner");
+  const btnSomVideo = overlay.querySelector(".video-modal-som");
+  const btnExpandir = overlay.querySelector(".video-modal-expandir");
 
   const fechar = () => overlay.remove();
   overlay.querySelector(".video-modal-fechar").addEventListener("click", fechar);
@@ -143,9 +149,38 @@ function abrirPlayerVideo(videoId, titulo, videoSlug) {
     }
   });
 
+  // Botão de som e de tela cheia próprios do app — alguns vídeos são
+  // reconhecidos pelo YouTube como "Shorts" e nesse caso o player incorporado
+  // mostra uma barra de controle reduzida, sem botão de volume nem de tela
+  // cheia (só um ícone de "like"). Com nossos próprios botões, funciona igual
+  // em todo portal, não importa como o YouTube classificou o vídeo.
+  let player = null;
+  btnSomVideo.addEventListener("click", () => {
+    if (!player) return;
+    if (player.isMuted()) {
+      player.unMute();
+      btnSomVideo.textContent = "🔊";
+      btnSomVideo.setAttribute("aria-label", "Silenciar");
+    } else {
+      player.mute();
+      btnSomVideo.textContent = "🔇";
+      btnSomVideo.setAttribute("aria-label", "Ativar som");
+    }
+  });
+
+  btnExpandir.addEventListener("click", () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (inner.requestFullscreen) {
+      inner.requestFullscreen();
+    } else if (inner.webkitRequestFullscreen) {
+      inner.webkitRequestFullscreen();
+    }
+  });
+
   carregarYouTubeAPI().then(() => {
     if (!document.getElementById(playerId)) return; // Viajante já fechou o modal antes da API carregar
-    new YT.Player(playerId, {
+    player = new YT.Player(playerId, {
       videoId,
       playerVars: { autoplay: 1, mute: 1, playsinline: 1, rel: 0, title: titulo },
       events: {
