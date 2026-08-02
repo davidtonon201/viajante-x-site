@@ -292,6 +292,29 @@ html, body {
   cursor: pointer;
 }
 
+.video-modal-som,
+.video-modal-expandir {
+  position: absolute;
+  top: 0.5rem;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #f6e7b0;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.video-modal-som {
+  left: 0.5rem;
+}
+
+.video-modal-expandir {
+  left: 3.2rem;
+}
+
 /* Tela do Guardião do Nó (chat) */
 .guardiao {
   position: relative;
